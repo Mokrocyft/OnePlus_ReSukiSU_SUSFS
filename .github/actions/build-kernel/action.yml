@@ -1338,7 +1338,7 @@ runs:
             patch -p1 --forward < "$BBR_PATCH"
             
             echo "Enabling BBRv3 in defconfig..."
-            # Добавляем необходимые конфигурации в gki_defconfig
+            # Добавляем конфигурации. Важно: EOF должен быть в начале строки!
             cat >> "arch/arm64/configs/gki_defconfig" <<EOF
             CONFIG_TCP_CONG_BBR=y
             CONFIG_DEFAULT_TCP_CONG="bbr"
