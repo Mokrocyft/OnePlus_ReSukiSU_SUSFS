@@ -1308,7 +1308,6 @@ runs:
         CONFIG_TMPFS_POSIX_ACL=y
         EOF
 
-
     - name: Add BBR
       if: ${{ env.OP_BBR == 'true' }}
       shell: bash
@@ -1321,6 +1320,35 @@ runs:
         CONFIG_NET_SCH_FQ=y
         CONFIG_NET_SCH_FQ_CODEL=y
         EOF
+
+    - name: Apply BBRv3 Patch
+      shell: bash
+      if: ${{ env.OP_BBR == 'true' }}
+      run: |
+        set -euo pipefail
+        echo "::group::Apply BBRv3 Patch"
+        cd "$COMMON_KERNEL_FOLDER"
+        
+        # Путь к патчу в уже склонированном репозитории kernel_patches
+        BBR_PATCH="$KERNEL_PATCHES_FOLDER/bbr/bbrv3-android16-6.12.patch"
+        
+        if [ -f "$BBR_PATCH" ]; then
+            echo "Applying BBRv3 patch: $(basename $BBR_PATCH)"
+            # Применяем патч
+            patch -p1 --forward < "$BBR_PATCH"
+            
+            echo "Enabling BBRv3 in defconfig..."
+            # Добавляем необходимые конфигурации в gki_defconfig
+            cat >> "arch/arm64/configs/gki_defconfig" <<EOF
+            CONFIG_TCP_CONG_BBR=y
+            CONFIG_DEFAULT_TCP_CONG="bbr"
+            EOF
+            echo "✅ BBRv3 patch applied and configured"
+        else
+            echo "::error::BBRv3 patch not found at $BBR_PATCH"
+            exit 1
+        fi
+        echo "::endgroup::"
 
     - name: Add TTL Target Support
       if: ${{ env.OP_TTL == 'true' }}
