@@ -1328,21 +1328,18 @@ runs:
         set -euo pipefail
         echo "::group::Apply BBRv3 Patch"
         cd "$COMMON_KERNEL_FOLDER"
-        
-        # Путь к патчу в уже склонированном репозитории kernel_patches
+
         BBR_PATCH="$KERNEL_PATCHES_FOLDER/bbr/bbrv3-android16-6.12.patch"
-        
+
         if [ -f "$BBR_PATCH" ]; then
             echo "Applying BBRv3 patch: $(basename $BBR_PATCH)"
-            # Применяем патч
             patch -p1 --forward < "$BBR_PATCH"
-            
+
             echo "Enabling BBRv3 in defconfig..."
-            # Добавляем конфигурации. Важно: EOF должен быть в начале строки!
             cat >> "arch/arm64/configs/gki_defconfig" <<EOF
-            CONFIG_TCP_CONG_BBR=y
-            CONFIG_DEFAULT_TCP_CONG="bbr"
-            EOF
+        CONFIG_TCP_CONG_BBR=y
+        CONFIG_DEFAULT_TCP_CONG="bbr"
+        EOF
             echo "✅ BBRv3 patch applied and configured"
         else
             echo "::error::BBRv3 patch not found at $BBR_PATCH"
